@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/DinaMazur/mini-progect-dina/issues"
   },
-  "homepage": "https://github.com/DinaMazur/mini-progect-dina#readme",
+  "homepage": "https://dinamazur.github.io/mini-progect-dina/",
   "dependencies": {
     "gh-pages": "^6.3.0",
     "parcel": "^2.15.4"
