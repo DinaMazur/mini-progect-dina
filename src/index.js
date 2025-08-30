@@ -1,61 +1,120 @@
-const form = document.getElementById("search-form")
-const list = document.querySelector(".list")
-const searchInput = document.querySelector(".search-input")
-const loadMoreButton = document.querySelector(".loadmore")
 
-function searchActivate(data) {
-    console.log(data)
-    const elements = data.hits.map(element => {
-        const html = `
-        <li class="photo-card">
-  <img class="image" src="${element.largeImageURL}" alt="image" />
-  <div class="stats">
-    <p class="stats-item">
-      <i class="material-icons">Likes:</i>
-      ${element.likes}
-    </p>
-    <p class="stats-item">
-      <i class="material-icons">Views:</i>
-      ${element.views}
-    </p>
-    <p class="stats-item">
-      <i class="material-icons">Comments:</i>
-      ${element.comments}
-    </p>
-    <p class="stats-item">
-      <i class="material-icons">Downloads:</i>
-      ${element.downloads}
-    </p>
-  </div>
-</li>
-`
-        return html
-    })
-    const string = elements.join(``)
-    list.insertAdjacentHTML("beforeend", string)
+
+const form = document.querySelector(".postForm");
+const postList = document.querySelector(".postList")
+let editingId = null;
+
+export const getPosts = async () => {
+  try {
+    const res = await fetch("https://687cc83d918b6422432f7281.mockapi.io/posts/posts");
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    throw error;
+  }
+};
+
+
+export const createPost = async (postData) => {
+  try {
+    const res = await fetch("https://687cc83d918b6422432f7281.mockapi.io/posts/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(postData),
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Error creating post:", error);
+    throw error;
+  }
+};
+
+export const deletePost = async (id) => {
+  try {
+    const res = await fetch(`https://687cc83d918b6422432f7281.mockapi.io/posts/posts/${id}`, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+};
+
+
+
+export const updatePost = async (id, updatedData) => {
+  try {
+    const res = await fetch(`https://687cc83d918b6422432f7281.mockapi.io/posts/posts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData),
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Error updating post:", error);
+    throw error;
+  }
+};
+
+
+export function getPostForm(post = {}) {
+  return `
+    <form id="postForm">
+      <input type="hidden" name="id" value="${post.id || ''}">
+      <input type="text" name="title" placeholder="Назва" value="${post.title || ''}" required>
+      <input type="text" name="image" placeholder="URL зображення" value="${post.image || ''}" required>
+      <textarea name="description" placeholder="Опис" required>${post.description || ''}</textarea>
+      <button type="submit">${post.id ? 'Оновити' : 'Додати'} пост</button>
+    </form>
+  `;
 }
 
-let cards = 12;
-let page = 1;
 
-const getAPI = async (page, cards) => {
-    const selectOrder = document.getElementById("select-order").value;
-    try {
-        return await fetch(`https://pixabay.com/api/?key=51425063-e87401854758e3e3468b7b002&q=${searchInput.value}&per_page=${cards}&page=${page}&order=${selectOrder}&image_type=photo`)
-    } catch (error) {
-        return console.log(error)
-    }
+const renderPosts = async () => {
+  const posts = (await getPosts()).reverse();
+  postList.innerHTML = posts.map(post => `
+    <li class="post-item" data-id="${post.id}">
+      <h3>${post.title}</h3>
+      <p><b>Автор:</b> ${post.author}</p>
+      <p><b>Дата:</b> ${post.date}</p>
+      ${post.image ? `<img src="${post.image}" alt="">` : ""}
+      <p>${post.description}</p>
+      <button class="edit" data-id="${post.id}">редагувати</button>
+      <button class="del" data-id="${post.id}">видалити</button>
+    </li>
+  `).join("");
 
-}
+  // Події для кнопок "Видалити"
+  postList.querySelectorAll(".del").forEach(button => {
+    button.addEventListener("click", async () => {
+      await deletePost(button.dataset.id);
+      renderPosts();
+    });
+  });
 
-form.addEventListener("submit", (event) => {
-    event.preventDefault()
-    loadMoreButton.classList.add("displayblock");
-    getAPI(page, cards).then((result) => result.json()).then((resultdata) => searchActivate(resultdata))
-})
+  // Події для кнопок "Редагувати"
+  postList.querySelectorAll(".edit").forEach(button => {
+    button.addEventListener("click", async () => {
+      const post = (await getPosts()).find(p => p.id == button.dataset.id);
+      if (!post) return;
 
-loadMoreButton.addEventListener("click", (event) => {
-    page++
-    console.log(page, cards)
-    getAPI(page, cards).then((result) => result.json()).then((resultdata) => searchActivate(resultdata))
-})
+      form.title.value = post.title;
+      form.author.value = post.author;
+      form.date.value = post.date;
+      form.image.value = post.image;
+      form.description.value = post.description;
+      editingId = post.id;
+    });
+  });
+};
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form));
+  editingId ? await updatePost(editingId, data) : await createPost(data);
+  editingId = null;
+  form.reset();
+  renderPosts();
+});
+
+renderPosts();

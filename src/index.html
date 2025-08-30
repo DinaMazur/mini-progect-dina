@@ -1,24 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8">
+  <title>Блог</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-      <form id="search-form">
-        <input name="search-input" class="search-input" type="text">
-        <button class="search" type="submit">Search</button>
-            <select id="select-order">
-  <option value="latest">Latest</option>
-  <option value="popular">Popular</option>
-</select>
-    </form>
-    <ul class="list">
+  <div class="container">
+  <div class="main">
+    <div class="form-section">
+      <h2>Створити пост</h2>
+      <form class="postForm">
+        <input type="text" name="title" placeholder="Назва" required>
+        <input type="text" name="author" placeholder="Автор" required>
+        <input type="text" name="date" placeholder="Дата" required>
+        <input type="text" name="image" placeholder="URL зображення" required>
+        <textarea name="description" placeholder="Опис" required></textarea>
+        <button class="add" type="submit">Додати</button>
+      </form>
+    </div>
 
-    </ul>
-    <button type="button" class="loadmore">Load More</button>
-    <script src="./index.js"></script>
+    <div class="posts-section">
+      <h2>Усі пости</h2>
+      <ul class="postList"></ul>
+    </div>
+  </div>
+</div>
+
+  <script type="module" src="./index.js"></script>
 </body>
 </html>
